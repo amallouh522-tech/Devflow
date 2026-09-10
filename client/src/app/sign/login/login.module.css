@@ -1,0 +1,276 @@
+/* تطبيق box-sizing بشكل صحيح داخل CSS Modules */
+.pageWrapper,
+.pageWrapper * {
+  box-sizing: border-box;
+}
+
+.pageWrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #121318;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #ffffff;
+}
+
+/* الكارت الرئيسي */
+.splitCard {
+  display: flex;
+  flex-direction: column; /* جعل العرض افتراضياً عمودي للشاشات الصغيرة */
+  width: 100%;
+  max-width: 960px;
+  background-color: #1a1b23;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* الجانب الأيسر (صورة الكود) */
+.leftSection {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%),
+              url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1000&auto=format&fit=crop') center/cover no-repeat;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+  min-height: 200px;
+}
+
+.leftOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 19, 24, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.brandHeader, 
+.heroContent {
+  position: relative;
+  z-index: 2;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.logo span {
+  color: #6366f1;
+}
+
+.backBtn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.heroTitle {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 4px 0;
+}
+
+.heroSubtitle {
+  color: #cbd5e1;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* الجانب الأيمن (النموذج) */
+.rightSection {
+  width: 100%;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.formHeader {
+  margin-bottom: 24px;
+}
+
+.formTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.formSubtitle {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0;
+}
+
+.link {
+  color: #818cf8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: #242632;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  border-color: #6366f1;
+  background-color: #2a2d3d;
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgotLink {
+  color: #818cf8;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 12px;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitBtn:hover {
+  background-color: #4f46e5;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  color: #6b7280;
+  font-size: 12px;
+  width: 100%;
+}
+
+.divider::before, 
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.divider span {
+  padding: 0 10px;
+}
+
+.socialButtons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.socialBtn {
+  flex: 1;
+  padding: 10px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.socialBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* الشاشات الكبيرة (Desktop) */
+@media (min-width: 769px) {
+  .splitCard {
+    flex-direction: row; /* إرجاعها بجانب بعضها في الكمبيوتر */
+  }
+
+  .leftSection {
+    width: 50%;
+    min-height: 520px;
+    padding: 32px;
+  }
+
+  .rightSection {
+    width: 50%;
+    padding: 48px;
+  }
+
+  .heroTitle {
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  .heroSubtitle {
+    font-size: 14px;
+  }
+
+  .formTitle {
+    font-size: 28px;
+  }
+
+  .backBtn {
+    top: 32px;
+    right: 32px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
