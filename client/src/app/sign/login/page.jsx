@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./login.module.css";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/lib/api";
+import { getSession } from "@/lib/auth";
 
 export default function LoginPage() {
 
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
+
+  // إذا المستخدم مسجل دخول أصلاً، رجّعه عالرئيسية
+  useEffect(() => {
+    if (getSession()) router.replace("/");
+  }, [router]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,17 +31,21 @@ export default function LoginPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     login();
-    console.log("Login payload:", formData);
   };
 
+  // axios بيرمي خطأ على أي رد غير 2xx، فالخطأ لازم ينمسك بالـ catch
   const login = async () => {
-    const response = await axios.post("http://localhost:5000/api/login", formData);
-    if (response.status === 200) {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/login`, formData);
       localStorage.setItem("token", response.data.token);
-      router.push("/"); // Redirect to dashboard after successful login
-      // Handle successful login
-    }else{
-      toast.error("Invalid username or password!");
+      router.replace("/");
+    } catch (error) {
+      const message = error.response
+        ? error.response.data?.error || "Invalid username or password!"
+        : "Can't reach the server. Please try again.";
+      toast.error(message);
+      setLoading(false);
     }
   };
 
@@ -101,8 +113,8 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <button type="submit" className={styles.submitBtn}>
-              Log in
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
+              {loading ? "Logging in…" : "Log in"}
             </button>
           </form>
 

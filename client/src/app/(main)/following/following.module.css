@@ -1,0 +1,53 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px 18px;
+  text-align: center;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.person:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.role {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.meta {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin: 8px 0 12px;
+}
+
+.person :global(.btn-follow) {
+  margin: auto 0 0;
+  width: 100%;
+  height: 34px;
+}

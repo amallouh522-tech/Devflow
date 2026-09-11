@@ -1,0 +1,392 @@
+/* ==========================================================
+   الداشبورد + الرسومات البيانية
+   لون السلسلة (#6366f1) متحقَّق منه على سطح الكرت #14161d:
+   ضمن نطاق الإضاءة، كروما كافية، وتباين ≥ 3:1
+   ========================================================== */
+
+.dash {
+  --viz-series: var(--accent);
+  --viz-grid: #22252e;
+  --viz-deemph: #3a4051;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dash .page-head { margin-bottom: 0; }
+
+/* ============ الفلتر الزمني ============ */
+.range-bar {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.range-btn {
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  transition: background 0.15s, color 0.15s;
+}
+
+.range-btn:hover { color: var(--text); background: var(--panel-2); }
+
+.range-btn.active {
+  background: var(--panel-3);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+/* ============ بطاقات الأرقام ============ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.stat-icon.gold { background: var(--warning-soft); color: var(--warning-text); }
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.stat-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.stat-delta em {
+  margin-left: 5px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.stat-delta.up { color: var(--success-text); }
+.stat-delta.down { color: var(--danger-text); }
+.stat-delta.flat { font-weight: 400; color: var(--text-3); }
+
+/* خط مصغّر: الفترات السابقة باهتة والأخيرة بلون البراند */
+.spark {
+  width: 96px;
+  height: 28px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.spark-line { fill: none; stroke: var(--viz-deemph); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.spark-tail { fill: none; stroke: var(--viz-series); stroke-width: 2; stroke-linecap: round; }
+.spark-dot { fill: var(--viz-series); stroke: var(--panel); stroke-width: 2; }
+
+/* ============ شبكة البطاقات ============ */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.span-2 { grid-column: span 2; }
+
+.chart-card { display: flex; flex-direction: column; gap: 14px; }
+
+.chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.chart-title { font-size: 15px; font-weight: 650; }
+.chart-sub { margin-top: 2px; font-size: 12.5px; color: var(--text-3); }
+
+.muted-note {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* ============ الرسم الكبير ============ */
+.chart-wrap { position: relative; }
+
+.chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  outline: none;
+}
+
+.chart:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.chart .grid { stroke: var(--viz-grid); stroke-width: 1; shape-rendering: crispEdges; }
+
+.chart .tick {
+  fill: var(--text-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.series-line {
+  fill: none;
+  stroke: var(--viz-series);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.series-dot { fill: var(--viz-series); stroke: var(--panel); stroke-width: 2; }
+.crosshair { stroke: var(--text-3); stroke-width: 1; shape-rendering: crispEdges; }
+
+.end-label {
+  fill: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============ التلميح ============ */
+.viz-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  background: var(--panel-3);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-pop);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+}
+
+.viz-tip.tip-start { transform: translate(-12px, calc(-100% - 14px)); }
+.viz-tip.tip-end { transform: translate(calc(-100% + 12px), calc(-100% - 14px)); }
+
+.tip-value { font-size: 14px; font-weight: 700; color: var(--text); }
+.tip-value em { font-style: normal; font-weight: 400; font-size: 12px; color: var(--text-2); }
+.tip-label { font-size: 11.5px; color: var(--text-3); }
+
+/* ============ الأعمدة الأفقية ============ */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bar-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 6px;
+  border-radius: 8px;
+  outline: none;
+  cursor: default;
+}
+
+.bar-row.is-active { background: var(--panel-2); }
+.bar-row:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+
+.bar-name { font-size: 12.5px; color: var(--text-2); }
+
+.bar-track { height: 18px; }
+
+/* نهاية مدوّرة 4px عند القيمة ومربعة عند خط البداية */
+.bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: var(--viz-series);
+  transition: width 0.35s var(--ease), filter 0.15s;
+}
+
+.bar-row.is-active .bar-fill { filter: brightness(1.18); }
+
+.bar-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-tip {
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, calc(-100% - 6px));
+}
+
+/* ============ مؤشر التقدّم ============ */
+.badge-goal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.badge-goal-head { display: flex; align-items: center; gap: 10px; }
+.badge-goal-head strong { display: block; font-size: 13.5px; }
+.badge-goal-head span { font-size: 12px; color: var(--text-3); }
+
+.meter-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-foot strong { color: var(--text); }
+
+/* ============ الجداول ============ */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 -4px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--panel-2); }
+
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.data-table td.num { color: var(--text); }
+
+.post-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+}
+
+.post-cell-title {
+  color: var(--text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============ النشاط ============ */
+.activity { display: flex; flex-direction: column; gap: 4px; }
+
+.activity-item {
+  display: flex;
+  gap: 11px;
+  padding: 9px 4px;
+}
+
+.activity-body p { font-size: 12.5px; line-height: 1.45; color: var(--text); }
+.activity-body span { font-size: 11.5px; color: var(--text-3); }
+.activity-body em { font-style: normal; color: var(--success-text); }
+
+/* ============ التجاوب ============ */
+@media (max-width: 1280px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1100px) {
+  .dash-grid { grid-template-columns: minmax(0, 1fr); }
+  .span-2 { grid-column: auto; }
+}
+
+@media (max-width: 520px) {
+  /* بطاقتين بالسطر: الرقم والنسبة يكفوا، الخط المصغّر بيختفي */
+  .kpi-grid { gap: 10px; }
+  .stat-tile { padding: 14px; gap: 8px; }
+  .stat-label { font-size: 12px; line-height: 1.3; }
+  .stat-value { font-size: 24px; }
+  .spark, .stat-delta em { display: none; }
+  .range-bar { align-self: stretch; }
+  .range-btn { flex: 1; padding: 7px 8px; }
+  .chart-card, .dash-grid > .card { padding: 14px; }
+}

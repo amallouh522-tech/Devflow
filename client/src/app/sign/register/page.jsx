@@ -5,9 +5,13 @@ import Link from "next/link";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRouter } from "next/navigation";
 import styles from "./register.module.css";
+import { API_URL } from "@/lib/api";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -21,30 +25,23 @@ export default function RegisterPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     register();
-    console.log("Register payload:", formData);
   };
 
   const register = async () => {
+    setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/register",
-        formData
-      );
-
-      if (response.status === 200 || response.data.status === 200) {
-        toast.success("Registered successfully!");
-      } else if (response.data.status === 422) {
-        toast.error("Username or email already exists!");
-      }
-      
-      else {
-        toast.error("An error occurred while registering the account!");
-      }
+      await axios.post(`${API_URL}/api/register`, formData);
+      toast.success("Account created! Redirecting to log in…");
+      setTimeout(() => router.push("/sign/login"), 1200);
     } catch (error) {
-      // التعامل مع أخطاء السيرفر أو الاتصال
-      const errorMessage =
-        error.response?.data?.message || "An error occurred while registering!";
+      // السيرفر بيرجع { error } — 422 يعني المستخدم موجود
+      const errorMessage = !error.response
+        ? "Can't reach the server. Please try again."
+        : error.response.status === 422
+          ? "Username or email already exists!"
+          : error.response.data?.error || "An error occurred while registering!";
       toast.error(errorMessage);
+      setLoading(false);
     }
   };
 
@@ -65,7 +62,7 @@ export default function RegisterPage() {
           </div>
 
           <div className={styles.heroContent}>
-            <h2 className={styles.heroTitle}>Welcome back, Developer!</h2>
+            <h2 className={styles.heroTitle}>Join the community, Developer!</h2>
             <p className={styles.heroSubtitle}>
               Create a new account to manage your projects and workflows.
             </p>
@@ -113,8 +110,8 @@ export default function RegisterPage() {
               required
             />
 
-            <button type="submit" className={styles.submitBtn}>
-              Create Account
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
+              {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
 
