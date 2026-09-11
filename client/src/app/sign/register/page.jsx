@@ -1,134 +1,86 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
-import styles from "./register.module.css";
-import { API_URL } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    email: "",
-  });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register();
-  };
-
-  const register = async () => {
+    setError("");
     setLoading(true);
+
     try {
-      await axios.post(`${API_URL}/api/register`, formData);
-      toast.success("Account created! Redirecting to log in…");
-      setTimeout(() => router.push("/sign/login"), 1200);
-    } catch (error) {
-      // السيرفر بيرجع { error } — 422 يعني المستخدم موجود
-      const errorMessage = !error.response
-        ? "Can't reach the server. Please try again."
-        : error.response.status === 422
-          ? "Username or email already exists!"
-          : error.response.data?.error || "An error occurred while registering!";
-      toast.error(errorMessage);
+      await apiFetch("/register", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      router.push("/login");
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      {/* 🟢 إضافة حاوية التنبيهات هنا لكي تظهر الـ Toasts */}
-      <ToastContainer position="top-right" autoClose={3000} theme="dark" />
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow">
+        <h1 className="text-2xl font-bold text-center">إنشاء حساب جديد</h1>
 
-      <div className={styles.splitCard}>
-        {/* Left Side: Code Image & DevFlow Logo */}
-        <div className={styles.leftSection}>
-          <div className={styles.leftOverlay}></div>
-
-          <div className={styles.brandHeader}>
-            <div className={styles.logo}>
-              Dev<span>Flow</span>
-            </div>
+        {error && (
+          <div className="rounded bg-red-100 p-3 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-          <div className={styles.heroContent}>
-            <h2 className={styles.heroTitle}>Join the community, Developer!</h2>
-            <p className={styles.heroSubtitle}>
-              Create a new account to manage your projects and workflows.
-            </p>
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">اسم المستخدم</label>
+          <input
+            type="text"
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            className="w-full rounded border p-2"
+            required
+          />
         </div>
 
-        {/* Right Side: Register Form */}
-        <div className={styles.rightSection}>
-          <div className={styles.formHeader}>
-            <h1 className={styles.formTitle}>Create a new account</h1>
-            <p className={styles.formSubtitle}>
-              Already have an account?{" "}
-              <Link href="/sign/login" className={styles.link}>
-                Log in
-              </Link>
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              className={styles.input}
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              className={styles.input}
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              className={styles.input}
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-
-            <button type="submit" className={styles.submitBtn} disabled={loading}>
-              {loading ? "Creating account…" : "Create Account"}
-            </button>
-          </form>
-
-          <div className={styles.divider}>
-            <span>Or log in with</span>
-          </div>
-
-          <div className={styles.socialButtons}>
-            <button className={styles.socialBtn} type="button">
-              Google
-            </button>
-            <button className={styles.socialBtn} type="button">
-              GitHub
-            </button>
-          </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">البريد الإلكتروني</label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="w-full rounded border p-2"
+            required
+          />
         </div>
-      </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">كلمة المرور</label>
+          <input
+            type="password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className="w-full rounded border p-2"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded bg-green-600 py-2 text-white hover:bg-green-700 disabled:opacity-50"
+        >
+          {loading ? "جاري الإنشاء..." : "إنشاء الحساب"}
+        </button>
+      </form>
     </div>
   );
 }

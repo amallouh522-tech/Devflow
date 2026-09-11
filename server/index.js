@@ -1,90 +1,148 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const path = require("path");
 const app = express();
-const crypto = require("crypto");
 
-const PORT = process.env.PORT || 5000
-
-const mysql = require("./modules/db");
+const PORT = process.env.PORT || 5000;
+const { postImage, avatarImage, publicPath, UPLOAD_DIR } = require("./middleware/upload"); // تعديل المسار حسب مجلدك
+const { requireAuth, optionalAuth } = require("./middleware/auth");
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true
 }));
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-    res.send("Hello from the server!");
-});
+// تقديم الصور المرفوعة كملفات استاتيكية للـ Frontend
+app.use("/uploads", express.static(UPLOAD_DIR));
 
+// 1. تسجيل المستخدم
 app.post("/api/register", async (req, res) => {
     const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(422).json({ error: "جميع الحقول مطلوبة" });
+    }
+
     const sql = "SELECT * FROM users WHERE email = ? OR username = ?";
     mysql.query(sql, [email, username], async (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: "Database error" });
-        }
-        if (result.length > 0) {
-            return res.status(422).json({ error: "User already exists" });
-        }else{
-            const sql = "INSERT INTO users (username, email, password , UUID) VALUES (?, ?, ? , ?)";
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const UUID = crypto.randomUUID();
-            mysql.query(sql, [username, email, hashedPassword, UUID], (err, result) => {
-                if (err) {
-                    return res.status(500).json({ error: "Database error" });
-                }
-                if(result.affectedRows > 0){
-                    return res.status(200).json({ message: "User registered successfully" });
-                };
-            });
-        }
+        if (err) return res.status(500).json({ error: "خطأ في قاعدة البيانات" });
+        if (result.length > 0) return res.status(422).json({ error: "اسم المستخدم أو البريد المستعمل موجود مسبقاً" });
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const UUID = crypto.randomUUID();
+        const insertSql = "INSERT INTO users (username, email, password, UUID) VALUES (?, ?, ?, ?)";
+        
+        mysql.query(insertSql, [username, email, hashedPassword, UUID], (err, result) => {
+            if (err) return res.status(500).json({ error: "خطأ في إنشاء الحساب" });
+            return res.status(201).json({ message: "تم إنشاء الحساب بنجاح" });
+        });
     });
 });
+
+// 2. تسجيل الدخول
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
-
-    // 1. استخدام 422 للبيانات الناقصة بدلاً من 400
     if (!username || !password) {
-        return res.status(422).json({ error: "Username and password are required" });
+        return res.status(422).json({ error: "اسم المستخدم وكلمة المرور مطلوبان" });
     }
 
     const sql = "SELECT * FROM users WHERE username = ?";
-
     mysql.query(sql, [username], async (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: "Database error" });
-        }
-
-        // 2. استخدام 401 بدلاً من 400 عند عدم وجود المستخدم
-        if (result.length === 0) {
-            return res.status(401).json({ error: "Invalid username or password" });
-        }
+        if (err) return res.status(500).json({ error: "خطأ في قاعدة البيانات" });
+        if (result.length === 0) return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
 
         const user = result[0];
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
 
-        // 3. استخدام 401 بدلاً من 400 عند خطأ كلمة المرور
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: "Invalid username or password" });
-        }
-
-        const token = jwt.sign(
-            { id: user.id, username: user.username }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: "1h" }
-        );
-
-        return res.status(200).json({ message: "Login successful", token });
+        const token = signToken(user);
+        return res.status(200).json({
+            message: "تم تسجيل الدخول بنجاح",
+            token,
+            user: { id: user.UUID, username: user.username, email: user.email }
+        });
     });
 });
 
-
-app.listen(PORT , (req , res) => {
-    console.log("Server Running on PORT : " , PORT);
+// 3. مسار جلب معلومات المستخدم الحالي
+app.get("/api/me", requireAuth, (req, res) => {
+    res.json({ user: req.user });
 });
 
+// 1. جلب جميع المنشورات
+app.get("/api/posts", optionalAuth, (req, res) => {
+    const sql = `
+        SELECT p.*, u.username, u.avatar,
+        (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) AS likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_count
+        FROM posts p
+        JOIN users u ON p.user_id = u.ID
+        ORDER BY p.created_at DESC
+    `;
+    mysql.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: "خطأ في جلب المنشورات" });
+        res.status(200).json({ posts: results });
+    });
+});
+
+// 2. جلب منشور محدد عبر ID
+app.get("/api/posts/:id", optionalAuth, (req, res) => {
+    const postId = req.params.id;
+    
+    // زيادة عدد المشاهدات
+    mysql.query("UPDATE posts SET views = views + 1 WHERE id = ?", [postId]);
+
+    const sql = `
+        SELECT p.*, u.username, u.avatar,
+        (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) AS likes_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_count
+        FROM posts p
+        JOIN users u ON p.user_id = u.ID
+        WHERE p.id = ?
+    `;
+    mysql.query(sql, [postId], (err, results) => {
+        if (err) return res.status(500).json({ error: "خطأ في جلب بيانات المنشور" });
+        if (results.length === 0) return res.status(404).json({ error: "المنشور غير موجود" });
+        res.status(200).json({ post: results[0] });
+    });
+});
+
+// 3. إنشاء منشور جديد (مع دعم رفع صورة)
+app.post("/api/posts", requireAuth, postImage, (req, res) => {
+    const { title, content, type, code_snippet, code_language } = req.body;
+
+    if (!title || !content || !type) {
+        return res.status(422).json({ error: "العنوان، المحتوى، ونوع المنشور حقول إجبارية" });
+    }
+
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const sql = `
+        INSERT INTO posts (user_id, type, title, content, code_snippet, code_language, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    mysql.query(
+        sql,
+        [req.user.id, type, title, content, code_snippet || null, code_language || null, imagePath],
+        (err, result) => {
+            if (err) return res.status(500).json({ error: "خطأ في نشر المنشور" });
+            res.status(201).json({
+                message: "تم نشر المنشور بنجاح",
+                postId: result.insertId
+            });
+        }
+    );
+});
+
+// Handling Errors
+app.use((err, req, res, next) => {
+    const status = err.status || 500;
+    res.status(status).json({ error: err.message || "حدث خطأ غير متوقع", details: err.details });
+});
+
+app.listen(PORT, () => {
+    console.log("Server Running on PORT : ", PORT);
+});
